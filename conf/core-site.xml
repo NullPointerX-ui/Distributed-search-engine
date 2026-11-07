@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<configuration>
+  <property><name>fs.defaultFS</name><value>hdfs://node2:9000</value></property>
+  <property><name>hadoop.tmp.dir</name><value>/data/hadoop/tmp</value></property>
+  <!-- lets the browser UI / WebHDFS act as your user -->
+  <property><name>hadoop.http.staticuser.user</name><value>__CLUSTER_USER__</value></property>
+</configuration>

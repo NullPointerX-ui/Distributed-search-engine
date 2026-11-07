@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mini-Google</title>
+<style>
+  :root { --ink:#1c1c1c; --muted:#6b6b6b; --line:#e4e4e4; --accent:#1a56db; --bg:#fafafa; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; color:var(--ink); background:var(--bg); }
+  header { padding:28px 24px 12px; max-width:860px; margin:auto; }
+  h1 { margin:0 0 14px; font-size:26px; letter-spacing:-.5px; }
+  h1 span { color:var(--accent); }
+  form { display:flex; gap:8px; }
+  input[type=search] { flex:1; padding:12px 16px; font-size:17px; border:1px solid #ccc; border-radius:24px; outline:none; }
+  input[type=search]:focus { border-color:var(--accent); box-shadow:0 0 0 3px #1a56db22; }
+  button { padding:0 20px; border:0; border-radius:24px; background:var(--accent); color:#fff; font-size:15px; cursor:pointer; }
+  #meta { color:var(--muted); font-size:13px; margin-top:10px; min-height:20px; }
+  main { max-width:860px; margin:auto; padding:0 24px 40px; }
+  .r { background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:10px 0; }
+  .r a.t { font-size:18px; color:var(--accent); text-decoration:none; }
+  .r a.t:hover { text-decoration:underline; }
+  .u { color:#137333; font-size:13px; word-break:break-all; }
+  .s { color:var(--muted); font-size:12px; margin-top:6px; font-variant-numeric:tabular-nums; }
+  .badge { display:inline-block; background:#eef2ff; color:#3730a3; border-radius:6px; padding:1px 7px; font-size:12px; margin-right:6px; }
+  .err { color:#b42318; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Mini-<span>Google</span></h1>
+  <form id="f"><input id="q" type="search" placeholder="Search Simple English Wikipedia…" autofocus><button>Search</button></form>
+  <div id="meta"></div>
+</header>
+<main id="out"></main>
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+fetch('/health').then(r=>r.json()).then(h=>{ $('#meta').textContent = h.ok ? `Serving index v${h.version}` : 'No index loaded'; });
+async function run(q){
+  if(!q.trim()) return;
+  history.replaceState(null,'','?q='+encodeURIComponent(q));
+  $('#out').innerHTML='';
+  try{
+    const r = await fetch('/search?k=20&q='+encodeURIComponent(q));
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.detail||r.status);
+    $('#meta').textContent = `${d.total_hits} results · ${d.took_ms} ms · index v${d.index_version} · terms: ${d.terms.join(', ')||'(none)'}`;
+    $('#out').innerHTML = d.results.map(x=>`
+      <div class="r">
+        <a class="t" href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title||x.doc_id)}</a>
+        <div class="u">${esc(x.url)}</div>
+        <div class="s"><span class="badge">#${x.rank}</span><span class="badge">doc_id ${esc(x.doc_id)}</span>
+          score ${x.score.toFixed(4)} = 0.7×${x.bm25_norm.toFixed(3)} (BM25 ${x.bm25.toFixed(3)}) + 0.3×${x.pagerank_norm.toFixed(3)} (PR ${x.pagerank.toExponential(2)})</div>
+      </div>`).join('') || '<p>No matching documents.</p>';
+  }catch(e){ $('#out').innerHTML = `<p class="err">Error: ${esc(e.message)}</p>`; }
+}
+$('#f').onsubmit = e => { e.preventDefault(); run($('#q').value); };
+const q0 = new URLSearchParams(location.search).get('q'); if(q0){ $('#q').value=q0; run(q0); }
+</script>
+</body>
+</html>

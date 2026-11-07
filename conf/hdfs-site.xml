@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<configuration>
+  <!-- Spec: replication factor 2 across Node 2 and Node 3 -->
+  <property><name>dfs.replication</name><value>2</value></property>
+  <property><name>dfs.namenode.name.dir</name><value>file:///data/hdfs/namenode</value></property>
+  <property><name>dfs.datanode.data.dir</name><value>file:///data/hdfs/datanode</value></property>
+
+  <!-- Listen on every interface (incl. ZeroTier), not just loopback -->
+  <property><name>dfs.namenode.rpc-bind-host</name><value>0.0.0.0</value></property>
+  <property><name>dfs.namenode.http-address</name><value>0.0.0.0:9870</value></property>
+  <property><name>dfs.namenode.servicerpc-bind-host</name><value>0.0.0.0</value></property>
+
+  <!-- Talk to DataNodes by hostname (node2/node3) so ZeroTier IPs are used -->
+  <property><name>dfs.client.use.datanode.hostname</name><value>true</value></property>
+  <property><name>dfs.datanode.use.datanode.hostname</name><value>true</value></property>
+  <property><name>dfs.namenode.datanode.registration.ip-hostname-check</name><value>false</value></property>
+
+  <!-- Solo student project: skip HDFS permission headaches -->
+  <property><name>dfs.permissions.enabled</name><value>false</value></property>
+
+  <!-- Faster dead-DataNode detection for the fault-tolerance demo (~1.5 min instead of ~10) -->
+  <property><name>dfs.namenode.heartbeat.recheck-interval</name><value>30000</value></property>
+  <property><name>dfs.heartbeat.interval</name><value>3</value></property>
+</configuration>

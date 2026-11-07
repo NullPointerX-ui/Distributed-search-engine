@@ -1,0 +1,16 @@
+# sudo cp search/search.service /etc/systemd/system/ && sudo systemctl daemon-reload
+# sudo systemctl enable --now search   ;  journalctl -u search -f
+# EDIT User= and WorkingDirectory= to match your user / where you cloned the project.
+[Unit]
+Description=Mini-Google search API (FastAPI)
+After=network-online.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/home/ubuntu/dse/search
+Environment=SERVING_ROOT=/serving
+ExecStart=/opt/searchenv/bin/uvicorn app:app --host 0.0.0.0 --port 8000 --workers 1
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
